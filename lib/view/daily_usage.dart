@@ -401,8 +401,8 @@ class _DailyUsageScreenState extends State<DailyUsageScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: _buildSpeedIndicator(
-                    'Ping',
-                    '${entry.ping.toStringAsFixed(0)} ms',
+                    'Jitter',
+                    '${entry.jitter.toStringAsFixed(1)} ms',
                     Icons.swap_horiz,
                     Colors.orange,
                   ),

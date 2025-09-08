@@ -2,8 +2,9 @@ class SpeedTestModel {
   double downloadSpeed = 0.0;
   double uploadSpeed = 0.0;
   String pingResult = 'Loading...';
-  String wifiIP = '';
-  String wifiProvider = '';
+  double jitter = 0.0; // Add jitter field
+  String wifiIP = 'Loading...';
+  String wifiProvider = 'Loading...';
   bool isTestingDownload = false;
   bool isTestingUpload = false;
   bool downloadTested = false;
@@ -14,6 +15,8 @@ class SpeedTestModel {
   void reset() {
     downloadSpeed = 0.0;
     uploadSpeed = 0.0;
+    pingResult = 'Loading...';
+    jitter = 0.0; // Reset jitter
     downloadTested = false;
     uploadTested = false;
     downloadSuccess = false;
@@ -32,6 +35,10 @@ class SpeedTestModel {
 
   void setPingResult(String result) {
     pingResult = result;
+  }
+
+  void setJitter(double jitterValue) {
+    jitter = jitterValue;
   }
 
   void setNetworkInfo(String ip, String provider) {
@@ -64,5 +71,6 @@ class SpeedTestModel {
   }
 
   bool get isAnyTestRunning => isTestingDownload || isTestingUpload;
-  bool get isTestComplete => downloadTested && uploadTested && downloadSuccess && uploadSuccess;
-} 
+  bool get isTestComplete =>
+      downloadTested && uploadTested && downloadSuccess && uploadSuccess;
+}

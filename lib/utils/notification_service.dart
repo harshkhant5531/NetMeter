@@ -32,6 +32,7 @@ class NotificationService {
     required double downloadSpeed,
     required double uploadSpeed,
     required double ping,
+    double jitter = 0.0, // Add jitter parameter with default value
   }) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
@@ -62,7 +63,7 @@ class NotificationService {
       'Speed Test Complete! 🚀',
       'Download: ${downloadSpeed.toStringAsFixed(2)} Mbps\n'
       'Upload: ${uploadSpeed.toStringAsFixed(2)} Mbps\n'
-      'Ping: ${ping.toStringAsFixed(0)} ms',
+      'Jitter: ${jitter.toStringAsFixed(1)} ms',
       platformChannelSpecifics,
     );
   }

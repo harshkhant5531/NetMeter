@@ -36,7 +36,7 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/speed_test_logo.jpg"
-  adaptive_icon_foreground: "assets/adaptive_android_icon.png"
+  adaptive_icon_foreground: "assets/speed_test_logo.jpg"
 
 flutter:
   uses-material-design: true
@@ -44,3 +44,9 @@ flutter:
   assets:
     - assets/speed_test_logo.jpg  
     - assets/adaptive_android_icon.png
+    - assets/darshan_University_Logo.png
+    - assets/ASWDC.png
+    - assets/speed_test_logo_transparent.png
+    - assets\du_white.png
+    - assets\aswdc_white.png
+    

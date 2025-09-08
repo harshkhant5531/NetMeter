@@ -1,6 +1,7 @@
 import 'package:dart_ping/dart_ping.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 
 class PingCheckerPage extends StatefulWidget {
   const PingCheckerPage({super.key});
@@ -9,12 +10,13 @@ class PingCheckerPage extends StatefulWidget {
   State<PingCheckerPage> createState() => _PingCheckerPageState();
 }
 
-class _PingCheckerPageState extends State<PingCheckerPage> with TickerProviderStateMixin {
+class _PingCheckerPageState extends State<PingCheckerPage>
+    with TickerProviderStateMixin {
   List<Widget> _pingWidgets = [];
   bool isPinging = false;
   String output = '';
   final String target = '8.8.8.8';
-  
+
   // Animation controller for the ping button
   late AnimationController _buttonController;
   late Animation<double> _buttonScale;
@@ -26,13 +28,9 @@ class _PingCheckerPageState extends State<PingCheckerPage> with TickerProviderSt
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _buttonScale = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _buttonController,
-      curve: Curves.easeInOut,
-    ));
+    _buttonScale = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _buttonController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -47,74 +45,239 @@ class _PingCheckerPageState extends State<PingCheckerPage> with TickerProviderSt
       _pingWidgets.clear();
     });
 
-    final ping = Ping(target, count: 4);
+    // Try multiple ping targets for better reliability
+    final pingTargets = ['8.8.8.8', '1.1.1.1', '208.67.222.222'];
+    bool pingSuccessful = false;
 
-    await for (final PingData data in ping.stream) {
-      if (data.response != null) {
-        final pingTime = data.response!.time!.inMilliseconds;
-        final ip = data.response!.ip;
+    for (final target in pingTargets) {
+      if (pingSuccessful) break;
 
+      try {
+        // Add a ping attempt indicator
         _pingWidgets.add(
           Container(
             margin: const EdgeInsets.symmetric(vertical: 4),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.green.withOpacity(0.2), Colors.green.withOpacity(0.1)],
+                colors: [
+                  Colors.blue.withOpacity(0.2),
+                  Colors.blue.withOpacity(0.1),
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.green.withOpacity(0.3)),
+              border: Border.all(color: Colors.blue.withOpacity(0.3)),
             ),
             child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.2),
+                  color: Colors.blue.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                child: const Icon(Icons.wifi, color: Colors.blue, size: 20),
               ),
               title: Text(
-                "Reply from $ip",
+                "Testing $target",
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
               ),
               subtitle: Text(
-                "Time = ${pingTime}ms",
+                "Attempting ping...",
                 style: GoogleFonts.poppins(
-                  color: Colors.green[200],
+                  color: Colors.blue[200],
                   fontSize: 14,
-                ),
-              ),
-              trailing: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: Text(
-                  "✓",
-                  style: GoogleFonts.poppins(
-                    color: Colors.green,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
                 ),
               ),
             ),
           ),
         );
-      } else if (data.error != null) {
+        setState(() {});
+
+        final ping = Ping(target, count: 2, timeout: 3000);
+        int successfulPings = 0;
+        int totalAttempts = 0;
+
+        await for (final PingData data in ping.stream) {
+          totalAttempts++;
+
+          if (data.response != null && data.response!.time != null) {
+            final pingTime = data.response!.time!.inMilliseconds;
+            final ip = data.response!.ip;
+            successfulPings++;
+
+            // Replace the testing indicator with success
+            if (_pingWidgets.isNotEmpty) {
+              _pingWidgets.removeLast();
+            }
+
+            _pingWidgets.add(
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.green.withOpacity(0.2),
+                      Colors.green.withOpacity(0.1),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.green.withOpacity(0.3)),
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                      size: 20,
+                    ),
+                  ),
+                  title: Text(
+                    "Reply from $ip",
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  subtitle: Text(
+                    "Time = ${pingTime}ms",
+                    style: GoogleFonts.poppins(
+                      color: Colors.green[200],
+                      fontSize: 14,
+                    ),
+                  ),
+                  trailing: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      "✓",
+                      style: GoogleFonts.poppins(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+
+            pingSuccessful = true;
+            break;
+          } else if (data.error != null) {
+            print('Ping error for $target: ${data.error}');
+          }
+
+          setState(() {});
+        }
+
+        // If no successful pings from this target, show failure
+        if (successfulPings == 0) {
+          if (_pingWidgets.isNotEmpty) {
+            _pingWidgets.removeLast();
+          }
+
+          _pingWidgets.add(
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.red.withOpacity(0.2),
+                    Colors.red.withOpacity(0.1),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.red.withOpacity(0.3)),
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.error, color: Colors.red, size: 20),
+                ),
+                title: Text(
+                  "Failed to ping $target",
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                subtitle: Text(
+                  "No response received",
+                  style: GoogleFonts.poppins(
+                    color: Colors.red[200],
+                    fontSize: 14,
+                  ),
+                ),
+                trailing: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    "✗",
+                    style: GoogleFonts.poppins(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        setState(() {});
+      } catch (e) {
+        print('Ping failed for $target: $e');
+
+        // Remove testing indicator and add error
+        if (_pingWidgets.isNotEmpty) {
+          _pingWidgets.removeLast();
+        }
+
         _pingWidgets.add(
           Container(
             margin: const EdgeInsets.symmetric(vertical: 4),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.red.withOpacity(0.2), Colors.red.withOpacity(0.1)],
+                colors: [
+                  Colors.red.withOpacity(0.2),
+                  Colors.red.withOpacity(0.1),
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -122,7 +285,10 @@ class _PingCheckerPageState extends State<PingCheckerPage> with TickerProviderSt
               border: Border.all(color: Colors.red.withOpacity(0.3)),
             ),
             child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -132,14 +298,14 @@ class _PingCheckerPageState extends State<PingCheckerPage> with TickerProviderSt
                 child: const Icon(Icons.error, color: Colors.red, size: 20),
               ),
               title: Text(
-                "Ping failed",
+                "Error pinging $target",
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
               ),
               subtitle: Text(
-                data.error.toString(),
+                e.toString(),
                 style: GoogleFonts.poppins(
                   color: Colors.red[200],
                   fontSize: 14,
@@ -163,9 +329,289 @@ class _PingCheckerPageState extends State<PingCheckerPage> with TickerProviderSt
             ),
           ),
         );
+        setState(() {});
+        continue;
       }
+    }
 
-      setState(() {});
+    // If all ping targets failed, try HTTP ping as fallback
+    if (!pingSuccessful) {
+      try {
+        // Add HTTP ping attempt indicator
+        _pingWidgets.add(
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.purple.withOpacity(0.2),
+                  Colors.purple.withOpacity(0.1),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.purple.withOpacity(0.3)),
+            ),
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.purple.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.http, color: Colors.purple, size: 20),
+              ),
+              title: Text(
+                "Trying HTTP ping",
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              subtitle: Text(
+                "Alternative method...",
+                style: GoogleFonts.poppins(
+                  color: Colors.purple[200],
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        );
+        setState(() {});
+
+        final stopwatch = Stopwatch()..start();
+        final response = await http
+            .get(
+              Uri.parse('https://www.google.com'),
+              headers: {'Connection': 'close'},
+            )
+            .timeout(Duration(seconds: 10));
+
+        stopwatch.stop();
+
+        if (response.statusCode == 200) {
+          final pingTime = stopwatch.elapsedMilliseconds;
+
+          // Remove HTTP ping indicator
+          if (_pingWidgets.isNotEmpty) {
+            _pingWidgets.removeLast();
+          }
+
+          _pingWidgets.add(
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.green.withOpacity(0.2),
+                    Colors.green.withOpacity(0.1),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.green.withOpacity(0.3)),
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 20,
+                  ),
+                ),
+                title: Text(
+                  "HTTP ping successful",
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                subtitle: Text(
+                  "Time = ${pingTime}ms (HTTP method)",
+                  style: GoogleFonts.poppins(
+                    color: Colors.green[200],
+                    fontSize: 14,
+                  ),
+                ),
+                trailing: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    "✓",
+                    style: GoogleFonts.poppins(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+          pingSuccessful = true;
+        } else {
+          // Remove HTTP ping indicator and show failure
+          if (_pingWidgets.isNotEmpty) {
+            _pingWidgets.removeLast();
+          }
+
+          _pingWidgets.add(
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.orange.withOpacity(0.2),
+                    Colors.orange.withOpacity(0.1),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange.withOpacity(0.3)),
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.warning,
+                    color: Colors.orange,
+                    size: 20,
+                  ),
+                ),
+                title: Text(
+                  "All ping methods failed",
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                subtitle: Text(
+                  "Check your internet connection",
+                  style: GoogleFonts.poppins(
+                    color: Colors.orange[200],
+                    fontSize: 14,
+                  ),
+                ),
+                trailing: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    "!",
+                    style: GoogleFonts.poppins(
+                      color: Colors.orange,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        print('HTTP ping failed: $e');
+
+        // Remove HTTP ping indicator and show failure
+        if (_pingWidgets.isNotEmpty) {
+          _pingWidgets.removeLast();
+        }
+
+        _pingWidgets.add(
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.orange.withOpacity(0.2),
+                  Colors.orange.withOpacity(0.1),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.orange.withOpacity(0.3)),
+            ),
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.warning,
+                  color: Colors.orange,
+                  size: 20,
+                ),
+              ),
+              title: Text(
+                "All ping methods failed",
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              subtitle: Text(
+                "Check your internet connection",
+                style: GoogleFonts.poppins(
+                  color: Colors.orange[200],
+                  fontSize: 14,
+                ),
+              ),
+              trailing: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  "!",
+                  style: GoogleFonts.poppins(
+                    color: Colors.orange,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
     }
 
     setState(() {
@@ -184,9 +630,15 @@ class _PingCheckerPageState extends State<PingCheckerPage> with TickerProviderSt
             height: 60,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: isPinging 
-                    ? [Colors.grey.withOpacity(0.3), Colors.grey.withOpacity(0.2)]
-                    : [Colors.deepPurpleAccent.withOpacity(0.8), Colors.deepPurpleAccent.withOpacity(0.6)],
+                colors: isPinging
+                    ? [
+                        Colors.grey.withOpacity(0.3),
+                        Colors.grey.withOpacity(0.2),
+                      ]
+                    : [
+                        Colors.deepPurpleAccent.withOpacity(0.8),
+                        Colors.deepPurpleAccent.withOpacity(0.6),
+                      ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -207,12 +659,14 @@ class _PingCheckerPageState extends State<PingCheckerPage> with TickerProviderSt
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(16),
-                onTap: isPinging ? null : () {
-                  _buttonController.forward().then((_) {
-                    _buttonController.reverse();
-                  });
-                  startPing();
-                },
+                onTap: isPinging
+                    ? null
+                    : () {
+                        _buttonController.forward().then((_) {
+                          _buttonController.reverse();
+                        });
+                        startPing();
+                      },
                 child: Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -225,10 +679,16 @@ class _PingCheckerPageState extends State<PingCheckerPage> with TickerProviderSt
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
                                 ),
                               )
-                            : const Icon(Icons.wifi, color: Colors.white, size: 24),
+                            : const Icon(
+                                Icons.wifi,
+                                color: Colors.white,
+                                size: 24,
+                              ),
                       ),
                       const SizedBox(width: 12),
                       Text(
@@ -264,19 +724,13 @@ class _PingCheckerPageState extends State<PingCheckerPage> with TickerProviderSt
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
       ),
       child: _pingWidgets.isEmpty
           ? Center(
               child: Text(
                 "No results yet.",
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 16,
-                ),
+                style: GoogleFonts.poppins(color: Colors.white, fontSize: 16),
               ),
             )
           : Column(
@@ -396,7 +850,7 @@ class _PingCheckerPageState extends State<PingCheckerPage> with TickerProviderSt
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        "Test your network latency by pinging",
+                        "Test your network jitter by pinging",
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           color: Colors.white.withOpacity(0.7),
@@ -406,14 +860,14 @@ class _PingCheckerPageState extends State<PingCheckerPage> with TickerProviderSt
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 30),
-                
+
                 // Ping Button
                 buildPingButton(),
-                
+
                 const SizedBox(height: 30),
-                
+
                 // Results Section
                 Container(
                   constraints: BoxConstraints(
@@ -432,7 +886,7 @@ class _PingCheckerPageState extends State<PingCheckerPage> with TickerProviderSt
                           ),
                         ),
                 ),
-                
+
                 const SizedBox(height: 40),
               ],
             ),

@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../controller/speed_test_controller.dart';
 import '../model/speed_test_model.dart';
 import '../utils/ui_helpers.dart';
+import 'about_us.dart';
+import 'feedback_screen.dart';
 import 'ping.dart';
 import 'network_information.dart';
 import 'network_evaluation.dart';
@@ -11,21 +13,20 @@ import 'daily_usage.dart';
 import 'ip_to_location.dart';
 
 class SpeedTestView extends StatefulWidget {
-  const SpeedTestView({
-    super.key,
-  });
+  const SpeedTestView({super.key});
 
   @override
   State<SpeedTestView> createState() => _SpeedTestViewState();
 }
 
-class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateMixin {
+class _SpeedTestViewState extends State<SpeedTestView>
+    with TickerProviderStateMixin {
   late SpeedTestController _controller;
   late AnimationController _pulseController;
   late AnimationController _buttonController;
   late Animation<double> _pulseAnimation;
   late Animation<double> _buttonScale;
-  
+
   // Speed history tracking
   final List<double> _downloadSpeedHistory = [];
   final List<double> _uploadSpeedHistory = [];
@@ -44,31 +45,25 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    
+
     _buttonController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.2,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _buttonScale = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _buttonController,
-      curve: Curves.easeInOut,
-    ));
-    
+
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _buttonScale = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _buttonController, curve: Curves.easeInOut),
+    );
+
     // Listen to speed changes and track history
     _controller.modelStream.listen((model) {
-      final currentSpeed = model.isTestingUpload ? model.uploadSpeed : model.downloadSpeed;
+      final currentSpeed = model.isTestingUpload
+          ? model.uploadSpeed
+          : model.downloadSpeed;
       if (currentSpeed > 0) {
         // Track speed history
         if (model.isTestingDownload) {
@@ -125,10 +120,7 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'OK',
-              style: GoogleFonts.poppins(color: Colors.blue),
-            ),
+            child: Text('OK', style: GoogleFonts.poppins(color: Colors.blue)),
           ),
         ],
       ),
@@ -137,18 +129,18 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
 
   Future<void> _startSpeedTest() async {
     _buttonController.forward().then((_) => _buttonController.reverse());
-    
+
     try {
       // Clear speed history for new test
       _downloadSpeedHistory.clear();
       _uploadSpeedHistory.clear();
       setState(() {});
-      
+
       // Start pulse animation
       _pulseController.repeat();
-      
+
       await _controller.startSequentialTest();
-      
+
       // Stop pulse animation when test is complete
       _pulseController.stop();
     } catch (e) {
@@ -183,7 +175,9 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30)),
+          borderRadius: const BorderRadius.vertical(
+            bottom: Radius.circular(30),
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.3),
@@ -207,7 +201,11 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: IconButton(
-                          icon: const Icon(Icons.menu, color: Colors.white, size: 24),
+                          icon: const Icon(
+                            Icons.menu,
+                            color: Colors.white,
+                            size: 24,
+                          ),
                           onPressed: () => Scaffold.of(context).openDrawer(),
                         ),
                       ),
@@ -224,7 +222,6 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                     ],
                   ),
                 ),
-                
               ],
             ),
           ),
@@ -252,8 +249,8 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
           child: Column(
             children: [
               // Modern Header with New Theme
-                             Container(
-                 height: 220,
+              Container(
+                height: 220,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
@@ -332,81 +329,83 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                         ),
                       ),
                     ),
-                    
+
                     // Main Content
                     Positioned.fill(
-                                             child: Padding(
-                         padding: const EdgeInsets.all(20),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                                                         // Modern App Icon
-                             Container(
-                               padding: const EdgeInsets.all(14),
-                               decoration: BoxDecoration(
-                                 gradient: LinearGradient(
-                                   colors: [
-                                     Colors.white.withOpacity(0.3),
-                                     Colors.white.withOpacity(0.1),
-                                   ],
-                                   begin: Alignment.topLeft,
-                                   end: Alignment.bottomRight,
-                                 ),
-                                 borderRadius: BorderRadius.circular(20),
-                                 border: Border.all(
-                                   color: Colors.white.withOpacity(0.4),
-                                   width: 1.5,
-                                 ),
-                                 boxShadow: [
-                                   BoxShadow(
-                                     color: Colors.white.withOpacity(0.2),
-                                     blurRadius: 20,
-                                     spreadRadius: 2,
-                                   ),
-                                   BoxShadow(
-                                     color: Colors.black.withOpacity(0.2),
-                                     blurRadius: 10,
-                                     offset: const Offset(0, 5),
-                                   ),
-                                 ],
-                               ),
-                               child: Stack(
-                                 children: [
-                                   Image.asset(
-                                     'assets/speed_test_logo.jpg',
-                                     width: 35,
-                                     height: 35,
-                                     fit: BoxFit.cover,
-                                   ),
-                                   Positioned(
-                                     right: -3,
-                                     top: -3,
-                                     child: Container(
-                                       width: 10,
-                                       height: 10,
-                                       decoration: BoxDecoration(
-                                         shape: BoxShape.circle,
-                                         color: Colors.green,
-                                         border: Border.all(
-                                           color: Colors.white,
-                                           width: 1.5,
-                                         ),
-                                         boxShadow: [
-                                           BoxShadow(
-                                             color: Colors.green.withOpacity(0.5),
-                                             blurRadius: 6,
-                                             spreadRadius: 1,
-                                           ),
-                                         ],
-                                       ),
-                                     ),
-                                   ),
-                                 ],
-                               ),
-                             ),
-                            
-                                                         const SizedBox(height: 16),
-                            
+                            // Modern App Icon
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.white.withOpacity(0.3),
+                                    Colors.white.withOpacity(0.1),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.4),
+                                  width: 1.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.white.withOpacity(0.2),
+                                    blurRadius: 20,
+                                    spreadRadius: 2,
+                                  ),
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: Stack(
+                                children: [
+                                  Image.asset(
+                                    'assets/speed_test_logo.jpg',
+                                    width: 35,
+                                    height: 35,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  Positioned(
+                                    right: -3,
+                                    top: -3,
+                                    child: Container(
+                                      width: 10,
+                                      height: 10,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.green,
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width: 1.5,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.green.withOpacity(
+                                              0.5,
+                                            ),
+                                            blurRadius: 6,
+                                            spreadRadius: 1,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 16),
+
                             // App Name with Modern Typography
                             Text(
                               "NetMeter",
@@ -424,12 +423,15 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                                 ],
                               ),
                             ),
-                            
+
                             const SizedBox(height: 8),
-                            
+
                             // Status Indicator with Animation
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(20),
@@ -475,13 +477,16 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                   ],
                 ),
               ),
-              
-                             // Modern Menu Items
-               Expanded(
-                 child: Container(
-                   margin: const EdgeInsets.only(top: 10),
+
+              // Modern Menu Items
+              Expanded(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 10),
                   child: ListView(
-                                         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 8,
+                    ),
                     children: [
                       _buildModernDrawerItem(
                         icon: Icons.dashboard_rounded,
@@ -492,16 +497,18 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                         color: const Color(0xFF6366F1),
                       ),
                       const SizedBox(height: 8),
-                      _buildModernDrawerItem(
-                        icon: Icons.radar_rounded,
-                        title: "Ping Test",
-                        subtitle: "Latency Analysis",
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const PingCheckerPage()),
-                        ),
-                        color: const Color(0xFFEC4899),
-                      ),
+                      // _buildModernDrawerItem(
+                      //   icon: Icons.radar_rounded,
+                      //   title: " Ping Test",
+                      //   subtitle: "Network Latency Analysis",
+                      //   onTap: () => Navigator.push(
+                      //     context,
+                      //     MaterialPageRoute(
+                      //       builder: (context) => const PingCheckerPage(),
+                      //     ),
+                      //   ),
+                      //   color: const Color(0xFFEC4899),
+                      // ),
                       const SizedBox(height: 8),
                       _buildModernDrawerItem(
                         icon: Icons.router_rounded,
@@ -509,7 +516,9 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                         subtitle: "Connection Details",
                         onTap: () => Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const NetworkInfoScreen()),
+                          MaterialPageRoute(
+                            builder: (context) => const NetworkInfoScreen(),
+                          ),
                         ),
                         color: const Color(0xFF10B981),
                       ),
@@ -530,39 +539,67 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                         ),
                         color: const Color(0xFFF59E0B),
                       ),
-                       const SizedBox(height: 8),
-                       _buildModernDrawerItem(
-                         icon: Icons.location_on_rounded,
-                         title: "IP Location",
-                         subtitle: "Geographic Details",
-                         onTap: () => Navigator.push(
-                           context,
-                           MaterialPageRoute(builder: (context) => const LocationInfoScreen()),
-                         ),
-                         color: const Color(0xFF06B6D4),
-                       ),
                       const SizedBox(height: 8),
-                                             _buildModernDrawerItem(
-                         icon: Icons.timeline_rounded,
-                         title: "Usage History",
-                         subtitle: "Test Records",
-                         onTap: () => Navigator.push(
-                           context,
-                           MaterialPageRoute(builder: (context) => const DailyUsageScreen()),
-                         ),
-                         color: const Color(0xFF8B5CF6),
-                       ),
-                      
+                      _buildModernDrawerItem(
+                        icon: Icons.location_on_rounded,
+                        title: "IP Location",
+                        subtitle: "Geographic Details",
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LocationInfoScreen(),
+                          ),
+                        ),
+                        color: const Color(0xFF06B6D4),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildModernDrawerItem(
+                        icon: Icons.timeline_rounded,
+                        title: "Usage History",
+                        subtitle: "Test Records",
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DailyUsageScreen(),
+                          ),
+                        ),
+                        color: const Color(0xFF8B5CF6),
+                      ),
+                      _buildModernDrawerItem(
+                        icon: Icons.feedback,
+                        title: "Feedback",
+                        subtitle: "Share your feedback",
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>  FeedbackScreen(),
+                          ),
+                        ),
+                        color: const Color(0xFF06B6D4),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildModernDrawerItem(
+                        icon: Icons.location_on_rounded,
+                        title: "About Us",
+                        subtitle: "Information of Devloper",
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>  AboutUs(),
+                          ),
+                        ),
+                        color: const Color(0xFF06B6D4),
+                      ),
                     ],
                   ),
                 ),
               ),
-              
-                             // Modern Bottom Section
-                 Container(
-                                      height: 80,
-                                     margin: const EdgeInsets.all(8),
-                   padding: const EdgeInsets.all(8),
+
+              // Modern Bottom Section
+              Container(
+                height: 80,
+                margin: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -585,37 +622,37 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                     ),
                   ],
                 ),
-                                 child: Row(
-                   children: [
-                     Expanded(
-                              child: _buildModernDrawerItem(
-                          icon: Icons.info_rounded,
-                          title: "About App",
-                          subtitle: null,
-                         onTap: () {
-                           Navigator.pop(context);
-                           showAboutDialog(
-                             context: context,
-                             applicationName: "NetMeter",
-                             applicationVersion: "1.0.0",
-                             applicationLegalese: "© 2025 Harsh Khant",
-                           );
-                         },
-                         color: const Color(0xFF6B7280),
-                       ),
-                     ),
-                     const SizedBox(width: 8),
-                     Expanded(
-                                               child: _buildModernDrawerItem(
-                          icon: Icons.power_settings_new_rounded,
-                          title: "Exit App",
-                          subtitle: null,
-                         onTap: () => SystemNavigator.pop(),
-                         color: const Color(0xFFEF4444),
-                       ),
-                     ),
-                   ],
-                 ),
+                child: Row(
+                  children: [
+                    // Expanded(
+                    //   child: _buildModernDrawerItem(
+                    //     icon: Icons.info_rounded,
+                    //     title: "About App",
+                    //     subtitle: null,
+                    //     onTap: () {
+                    //       Navigator.pop(context);
+                    //       showAboutDialog(
+                    //         context: context,
+                    //         applicationName: "NetMeter",
+                    //         applicationVersion: "1.0.0",
+                    //         applicationLegalese: "© 2025 Harsh Khant",
+                    //       );
+                    //     },
+                    //     color: const Color(0xFF6B7280),
+                    //   ),
+                    // ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildModernDrawerItem(
+                        icon: Icons.power_settings_new_rounded,
+                        title: "Exit App",
+                        subtitle: null,
+                        onTap: () => SystemNavigator.pop(),
+                        color: const Color(0xFFEF4444),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -633,14 +670,11 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
     required Color color,
   }) {
     return Container(
-             margin: const EdgeInsets.only(bottom: 6),
+      margin: const EdgeInsets.only(bottom: 6),
       decoration: BoxDecoration(
-        gradient: isActive 
+        gradient: isActive
             ? LinearGradient(
-                colors: [
-                  color.withOpacity(0.3),
-                  color.withOpacity(0.1),
-                ],
+                colors: [color.withOpacity(0.3), color.withOpacity(0.1)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               )
@@ -648,33 +682,35 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
         color: !isActive ? Colors.white.withOpacity(0.02) : null,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isActive 
+          color: isActive
               ? color.withOpacity(0.4)
               : Colors.white.withOpacity(0.06),
           width: isActive ? 1.5 : 0.5,
         ),
-        boxShadow: isActive ? [
-          BoxShadow(
-            color: color.withOpacity(0.2),
-            blurRadius: 12,
-            spreadRadius: 1,
-          ),
-        ] : null,
+        boxShadow: isActive
+            ? [
+                BoxShadow(
+                  color: color.withOpacity(0.2),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: onTap,
-                     child: Padding(
-                                padding: const EdgeInsets.all(6),
+          child: Padding(
+            padding: const EdgeInsets.all(6),
             child: Row(
               children: [
-                                 // Modern Icon Container
-                 Container(
-                   padding: const EdgeInsets.all(4),
+                // Modern Icon Container
+                Container(
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    gradient: isActive 
+                    gradient: isActive
                         ? LinearGradient(
                             colors: [
                               color.withOpacity(0.4),
@@ -693,96 +729,110 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                           ),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isActive 
+                      color: isActive
                           ? color.withOpacity(0.5)
                           : Colors.white.withOpacity(0.1),
                       width: 1,
                     ),
-                    boxShadow: isActive ? [
-                      BoxShadow(
-                        color: color.withOpacity(0.3),
-                        blurRadius: 8,
-                        spreadRadius: 1,
-                      ),
-                    ] : null,
+                    boxShadow: isActive
+                        ? [
+                            BoxShadow(
+                              color: color.withOpacity(0.3),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ]
+                        : null,
                   ),
-                                                          child: Icon(
-                       icon,
-                       color: isActive ? Colors.white : Colors.white.withOpacity(0.7),
-                       size: 16,
-                   ),
-                                   ),
-                   
-                   const SizedBox(width: 8),
-                   
-                   // Text Content
-                 Expanded(
-                   child: subtitle == null 
-                                               ? Row(
-                            children: [
+                  child: Icon(
+                    icon,
+                    color: isActive
+                        ? Colors.white
+                        : Colors.white.withOpacity(0.7),
+                    size: 16,
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+
+                // Text Content
+                Expanded(
+                  child: subtitle == null
+                      ? Row(
+                          children: [
+                            Text(
+                              title,
+                              style: GoogleFonts.poppins(
+                                color: isActive
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.9),
+                                fontSize: 12,
+                                fontWeight: isActive
+                                    ? FontWeight.w700
+                                    : FontWeight.w600,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: GoogleFonts.poppins(
+                                color: isActive
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.9),
+                                fontSize: 14,
+                                fontWeight: isActive
+                                    ? FontWeight.w700
+                                    : FontWeight.w600,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                            if (subtitle != null) ...[
+                              const SizedBox(height: 2),
                               Text(
-                                title,
+                                subtitle,
                                 style: GoogleFonts.poppins(
-                                  color: isActive ? Colors.white : Colors.white.withOpacity(0.9),
-                                  fontSize: 12,
-                                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
-                                 letterSpacing: 0.2,
-                               ),
-                             ),
-                           ],
-                         )
-                       : Column(
-                           crossAxisAlignment: CrossAxisAlignment.start,
-                           children: [
-                             Text(
-                               title,
-                               style: GoogleFonts.poppins(
-                                 color: isActive ? Colors.white : Colors.white.withOpacity(0.9),
-                                 fontSize: 14,
-                                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
-                                 letterSpacing: 0.2,
-                               ),
-                             ),
-                             if (subtitle != null) ...[
-                               const SizedBox(height: 2),
-                               Text(
-                                 subtitle,
-                                 style: GoogleFonts.poppins(
-                                   color: isActive 
-                                       ? Colors.white.withOpacity(0.8)
-                                       : Colors.white.withOpacity(0.5),
-                                   fontSize: 10,
-                                   fontWeight: FontWeight.w400,
-                                   letterSpacing: 0.1,
-                                 ),
-                               ),
-                             ],
-                           ],
-                         ),
-                 ),
-                
-                                 // Modern Arrow Indicator - Only show for items with subtitles
-                 if (subtitle != null)
-                   Container(
-                     padding: const EdgeInsets.all(5),
-                     decoration: BoxDecoration(
-                       color: isActive 
-                           ? color.withOpacity(0.2)
-                           : Colors.white.withOpacity(0.03),
-                       borderRadius: BorderRadius.circular(10),
-                       border: Border.all(
-                         color: isActive 
-                             ? color.withOpacity(0.3)
-                             : Colors.white.withOpacity(0.08),
-                         width: 0.5,
-                       ),
-                     ),
-                     child: Icon(
-                       Icons.arrow_forward_ios_rounded,
-                       color: isActive ? Colors.white : Colors.white.withOpacity(0.4),
-                       size: 12,
-                     ),
-                   ),
+                                  color: isActive
+                                      ? Colors.white.withOpacity(0.8)
+                                      : Colors.white.withOpacity(0.5),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w400,
+                                  letterSpacing: 0.1,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                ),
+
+                // Modern Arrow Indicator - Only show for items with subtitles
+                if (subtitle != null)
+                  Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? color.withOpacity(0.2)
+                          : Colors.white.withOpacity(0.03),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isActive
+                            ? color.withOpacity(0.3)
+                            : Colors.white.withOpacity(0.08),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: isActive
+                          ? Colors.white
+                          : Colors.white.withOpacity(0.4),
+                      size: 12,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -806,30 +856,30 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
           child: Column(
             children: [
               const SizedBox(height: 20),
-              
+
               // Metrics Cards
               _buildMetricsSection(),
-              
+
               const SizedBox(height: 30),
-              
+
               // Live Speed Meters
               _buildLiveSpeedMeters(),
-              
+
               const SizedBox(height: 30),
-              
+
               // Speed Gauge
               _buildSpeedGauge(),
-              
+
               const SizedBox(height: 30),
-              
+
               // Start Button
               _buildStartButton(),
-              
+
               const SizedBox(height: 30),
-              
+
               // Connection Info
               _buildConnectionInfo(),
-              
+
               const SizedBox(height: 20),
             ],
           ),
@@ -843,7 +893,7 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
       stream: _controller.modelStream,
       builder: (context, snapshot) {
         final model = snapshot.data ?? _controller.model;
-        
+
         return Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -856,10 +906,7 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1,
-            ),
+            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.2),
@@ -868,33 +915,48 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
               ),
             ],
           ),
-                     child: Column(
-             children: [
-               _buildMetricCard(
-                 icon: Icons.swap_horiz,
-                 label: 'Latency',
-                 value: model.pingResult == 'Loading...' ? '...' : '${model.pingResult}ms',
-                 color: Colors.orange,
-                 isLoading: model.pingResult == 'Loading...',
-               ),
-               const SizedBox(height: 16),
-               _buildMetricCard(
-                 icon: Icons.download,
-                 label: 'Download Speed',
-                 value: model.downloadSpeed > 0 ? '${model.downloadSpeed.toStringAsFixed(2)} Mbps' : 'Waiting',
-                 color: Colors.green,
-                 isLoading: model.isTestingDownload,
-               ),
-               const SizedBox(height: 16),
-               _buildMetricCard(
-                 icon: Icons.upload,
-                 label: 'Upload Speed',
-                 value: model.uploadSpeed > 0 ? '${model.uploadSpeed.toStringAsFixed(2)} Mbps' : 'Waiting',
-                 color: Colors.blue,
-                 isLoading: model.isTestingUpload,
-               ),
-             ],
-           ),
+          child: Column(
+            children: [
+              _buildMetricCard(
+                icon: Icons.swap_horiz,
+                label: 'Jitter',
+                value:
+                    model.pingResult == 'Loading...' ||
+                        model.pingResult == 'Testing...'
+                    ? '...'
+                    : model.pingResult == 'Failed'
+                    ? 'Failed'
+                    : model.pingResult.isNotEmpty &&
+                          model.pingResult != 'Loading...'
+                    ? '${model.jitter.toStringAsFixed(1)}ms'
+                    : '...',
+                color: Colors.orange,
+                isLoading:
+                    model.pingResult == 'Loading...' ||
+                    model.pingResult == 'Testing...',
+              ),
+              const SizedBox(height: 16),
+              _buildMetricCard(
+                icon: Icons.download,
+                label: 'Download Speed',
+                value: model.downloadSpeed > 0
+                    ? '${model.downloadSpeed.toStringAsFixed(2)} Mbps'
+                    : 'Waiting',
+                color: Colors.green,
+                isLoading: model.isTestingDownload,
+              ),
+              const SizedBox(height: 16),
+              _buildMetricCard(
+                icon: Icons.upload,
+                label: 'Upload Speed',
+                value: model.uploadSpeed > 0
+                    ? '${model.uploadSpeed.toStringAsFixed(2)} Mbps'
+                    : 'Waiting',
+                color: Colors.blue,
+                isLoading: model.isTestingUpload,
+              ),
+            ],
+          ),
         );
       },
     );
@@ -912,10 +974,7 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
       ),
       child: Row(
         children: [
@@ -925,11 +984,7 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
               color: color.withOpacity(0.2),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 24,
-            ),
+            child: Icon(icon, color: color, size: 24),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -966,13 +1021,21 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
       stream: _controller.modelStream,
       builder: (context, snapshot) {
         final model = snapshot.data ?? _controller.model;
-        
+
         // Calculate min and max speeds
-        final downloadMin = _downloadSpeedHistory.isNotEmpty ? _downloadSpeedHistory.reduce((a, b) => a < b ? a : b) : 0.0;
-        final downloadMax = _downloadSpeedHistory.isNotEmpty ? _downloadSpeedHistory.reduce((a, b) => a > b ? a : b) : 0.0;
-        final uploadMin = _uploadSpeedHistory.isNotEmpty ? _uploadSpeedHistory.reduce((a, b) => a < b ? a : b) : 0.0;
-        final uploadMax = _uploadSpeedHistory.isNotEmpty ? _uploadSpeedHistory.reduce((a, b) => a > b ? a : b) : 0.0;
-        
+        final downloadMin = _downloadSpeedHistory.isNotEmpty
+            ? _downloadSpeedHistory.reduce((a, b) => a < b ? a : b)
+            : 0.0;
+        final downloadMax = _downloadSpeedHistory.isNotEmpty
+            ? _downloadSpeedHistory.reduce((a, b) => a > b ? a : b)
+            : 0.0;
+        final uploadMin = _uploadSpeedHistory.isNotEmpty
+            ? _uploadSpeedHistory.reduce((a, b) => a < b ? a : b)
+            : 0.0;
+        final uploadMax = _uploadSpeedHistory.isNotEmpty
+            ? _uploadSpeedHistory.reduce((a, b) => a > b ? a : b)
+            : 0.0;
+
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -985,10 +1048,7 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1,
-            ),
+            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.2),
@@ -1057,9 +1117,9 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Min/Max Speed Display Boxes
               Row(
                 children: [
@@ -1236,8 +1296,6 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                   ),
                 ],
               ),
-              
-              
             ],
           ),
         );
@@ -1250,11 +1308,13 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
       stream: _controller.modelStream,
       builder: (context, snapshot) {
         final model = snapshot.data ?? _controller.model;
-        final mainSpeed = model.isTestingUpload ? model.uploadSpeed : model.downloadSpeed;
+        final mainSpeed = model.isTestingUpload
+            ? model.uploadSpeed
+            : model.downloadSpeed;
         final speedColor = _getSpeedColor(mainSpeed);
         final isActive = model.isTestingDownload || model.isTestingUpload;
         final maxSpeed = 100.0; // Adjust based on your needs
-        
+
         return Container(
           padding: const EdgeInsets.all(30),
           decoration: BoxDecoration(
@@ -1267,10 +1327,7 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(
-              color: speedColor.withOpacity(0.3),
-              width: 2,
-            ),
+            border: Border.all(color: speedColor.withOpacity(0.3), width: 2),
             boxShadow: [
               BoxShadow(
                 color: speedColor.withOpacity(0.2),
@@ -1294,9 +1351,9 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                 isActive: isActive,
                 size: 220,
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Speed Category
               Text(
                 _getSpeedCategory(mainSpeed),
@@ -1306,9 +1363,9 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              
+
               const SizedBox(height: 10),
-              
+
               // Test Status
               if (isActive)
                 Row(
@@ -1324,7 +1381,9 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      model.isTestingDownload ? 'Testing Download...' : 'Testing Upload...',
+                      model.isTestingDownload
+                          ? 'Testing Download...'
+                          : 'Testing Upload...',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: speedColor,
@@ -1345,7 +1404,7 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
       stream: _controller.modelStream,
       builder: (context, snapshot) {
         final model = snapshot.data ?? _controller.model;
-        
+
         return AnimatedBuilder(
           animation: _buttonScale,
           builder: (context, child) {
@@ -1357,8 +1416,14 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: model.isAnyTestRunning
-                        ? [Colors.grey.withOpacity(0.3), Colors.grey.withOpacity(0.2)]
-                        : [Colors.green.withOpacity(0.8), Colors.green.withOpacity(0.6)],
+                        ? [
+                            Colors.grey.withOpacity(0.3),
+                            Colors.grey.withOpacity(0.2),
+                          ]
+                        : [
+                            Colors.green.withOpacity(0.8),
+                            Colors.green.withOpacity(0.6),
+                          ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -1390,14 +1455,22 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                               height: 24,
                               child: CircularProgressIndicator(
                                 strokeWidth: 3,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             )
                           else
-                            const Icon(Icons.speed, color: Colors.white, size: 28),
+                            const Icon(
+                              Icons.speed,
+                              color: Colors.white,
+                              size: 28,
+                            ),
                           const SizedBox(width: 16),
                           Text(
-                            model.isAnyTestRunning ? 'TESTING...' : 'START SPEED TEST',
+                            model.isAnyTestRunning
+                                ? 'TESTING...'
+                                : 'START SPEED TEST',
                             style: GoogleFonts.poppins(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -1424,12 +1497,14 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
       builder: (context, snapshot) {
         final model = snapshot.data ?? _controller.model;
         final isActive = model.isTestingDownload || model.isTestingUpload;
-        
+
         if (!isActive) return const SizedBox.shrink();
-        
-        final currentSpeed = model.isTestingUpload ? model.uploadSpeed : model.downloadSpeed;
+
+        final currentSpeed = model.isTestingUpload
+            ? model.uploadSpeed
+            : model.downloadSpeed;
         final speedColor = _getSpeedColor(currentSpeed);
-        
+
         return Positioned(
           top: 120,
           right: 20,
@@ -1439,7 +1514,10 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
               return Transform.scale(
                 scale: _pulseAnimation.value,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -1503,7 +1581,7 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
       stream: _controller.modelStream,
       builder: (context, snapshot) {
         final model = snapshot.data ?? _controller.model;
-        
+
         return Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -1516,59 +1594,113 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1,
-            ),
+            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
           ),
-                     child: Column(
-             children: [
-               _buildConnectionCard(
-                 icon: Icons.business,
-                 label: 'Service Provider',
-                 value: model.wifiProvider.isNotEmpty ? model.wifiProvider : 'Unknown',
-               ),
-               const SizedBox(height: 16),
-               _buildConnectionCard(
-                 icon: Icons.language,
-                 label: 'IP Address',
-                 value: model.wifiIP.isNotEmpty ? model.wifiIP : 'Local',
-               ),
-             ],
-           ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Connection Info',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.blue.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.refresh,
+                        color: Colors.red,
+                        size: 20,
+                      ),
+                      onPressed: () async {
+                        // Temporarily set IP to updating for immediate feedback
+                        _controller.model.setNetworkInfo(
+                          'Updating...',
+                          _controller.model.wifiProvider,
+                        );
+                        _controller.notifyModelUpdate();
+                        // Then refresh the actual network info
+                        await _controller.refreshNetworkInfo();
+                      },
+                      tooltip: 'Refresh IP Address',
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildConnectionCard(
+                icon: Icons.business,
+                label: 'Service Provider',
+                value: model.wifiProvider == 'Loading...'
+                    ? 'Fetching...'
+                    : (model.wifiProvider.isNotEmpty
+                          ? model.wifiProvider
+                          : 'Unknown'),
+                isLoading: model.wifiProvider == 'Loading...',
+              ),
+              const SizedBox(height: 16),
+              _buildConnectionCard(
+                icon: Icons.language,
+                label: 'IP Address',
+                value:
+                    model.wifiIP == 'Loading...' ||
+                        model.wifiIP == 'Unavailable' ||
+                        model.wifiIP.isEmpty
+                    ? 'Fetching...'
+                    : model.wifiIP,
+                isLoading:
+                    model.wifiIP == 'Loading...' ||
+                    model.wifiIP == 'Unavailable' ||
+                    model.wifiIP == 'Updating...',
+              ),
+            ],
+          ),
         );
       },
     );
   }
 
-    Widget _buildConnectionCard({
+  Widget _buildConnectionCard({
     required IconData icon,
     required String label,
     required String value,
+    bool isLoading = false,
   }) {
     // Different colors for different cards - more subtle
     final isServiceProvider = label == 'Service Provider';
-    final cardColor = isServiceProvider 
-        ? Colors.blue // Purple for Service Provider
-        : Colors.blue;// Light gray for IP Address
-    
-         return Container(
-       padding: const EdgeInsets.all(16),
-       decoration: BoxDecoration(
-         color: Colors.white.withOpacity(0.05),
-         borderRadius: BorderRadius.circular(16),
-         border: Border.all(
-           color: cardColor.withOpacity(0.4),
-           width: 1.5,
-         ),
-         boxShadow: [
-           BoxShadow(
-             color: cardColor.withOpacity(0.2),
-             blurRadius: 10,
-             spreadRadius: 1,
-           ),
-         ],
-       ),
+    final cardColor = isServiceProvider
+        ? Colors
+              .blue // Purple for Service Provider
+        : Colors.blue; // Light gray for IP Address
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: cardColor.withOpacity(0.4), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: cardColor.withOpacity(0.2),
+            blurRadius: 10,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
       child: Row(
         children: [
           Container(
@@ -1591,11 +1723,7 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                 ),
               ],
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 24,
-            ),
+            child: Icon(icon, color: Colors.white, size: 24),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1612,17 +1740,42 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.3,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                isLoading
+                    ? Row(
+                        children: [
+                          SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.blue,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Updating...',
+                            style: GoogleFonts.poppins(
+                              color: Colors.blue,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Text(
+                        value,
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.3,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
               ],
             ),
           ),
@@ -1648,4 +1801,4 @@ class _SpeedTestViewState extends State<SpeedTestView> with TickerProviderStateM
     if (speed < 500) return 'Very Fast';
     return 'Ultra Fast';
   }
-} 
+}

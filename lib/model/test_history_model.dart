@@ -3,6 +3,7 @@ class TestHistoryEntry {
   final double downloadSpeed;
   final double uploadSpeed;
   final double ping;
+  final double jitter; // Add jitter field
   final bool downloadSuccess;
   final bool uploadSuccess;
 
@@ -11,6 +12,7 @@ class TestHistoryEntry {
     required this.downloadSpeed,
     required this.uploadSpeed,
     required this.ping,
+    required this.jitter, // Add jitter parameter
     required this.downloadSuccess,
     required this.uploadSuccess,
   });
@@ -21,6 +23,7 @@ class TestHistoryEntry {
       'downloadSpeed': downloadSpeed,
       'uploadSpeed': uploadSpeed,
       'ping': ping,
+      'jitter': jitter, // Add jitter to JSON
       'downloadSuccess': downloadSuccess,
       'uploadSuccess': uploadSuccess,
     };
@@ -32,6 +35,7 @@ class TestHistoryEntry {
       downloadSpeed: json['downloadSpeed']?.toDouble() ?? 0.0,
       uploadSpeed: json['uploadSpeed']?.toDouble() ?? 0.0,
       ping: json['ping']?.toDouble() ?? 0.0,
+      jitter: json['jitter']?.toDouble() ?? 0.0, // Add jitter from JSON
       downloadSuccess: json['downloadSuccess'] ?? false,
       uploadSuccess: json['uploadSuccess'] ?? false,
     );
@@ -91,6 +95,12 @@ class TestHistory {
   double getAveragePing() {
     if (entries.isEmpty) return 0.0;
     final sum = entries.fold(0.0, (sum, entry) => sum + entry.ping);
+    return sum / entries.length;
+  }
+
+  double getAverageJitter() {
+    if (entries.isEmpty) return 0.0;
+    final sum = entries.fold(0.0, (sum, entry) => sum + entry.jitter);
     return sum / entries.length;
   }
 

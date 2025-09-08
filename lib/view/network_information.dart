@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
+import 'dart:io';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'ip_to_location.dart';
@@ -43,7 +44,9 @@ class _NetworkInfoScreenState extends State<NetworkInfoScreen> {
   }
 
   void _setupConnectivityListener() {
-    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
+      List<ConnectivityResult> results,
+    ) {
       _loadNetworkDetails();
     });
   }
@@ -53,69 +56,131 @@ class _NetworkInfoScreenState extends State<NetworkInfoScreen> {
       isLoading = true;
     });
 
+    print('Network Info Screen: Loading network details...');
+
     try {
       await Permission.location.request();
       await Permission.locationWhenInUse.request();
       await Permission.nearbyWifiDevices.request();
 
       final connectivityResults = await Connectivity().checkConnectivity();
-      
-      ConnectivityResult connectivityResult = connectivityResults.isNotEmpty 
-          ? connectivityResults.first 
-          : ConnectivityResult.none;
 
       setState(() {
-        switch (connectivityResult) {
-          case ConnectivityResult.wifi:
-            networkType = 'WiFi';
-            connectionStatus = 'Connected to WiFi';
-            break;
-          case ConnectivityResult.mobile:
-            networkType = 'Mobile Data';
-            connectionStatus = 'Connected to Mobile Network';
-            break;
-          case ConnectivityResult.ethernet:
-            networkType = 'Ethernet';
-            connectionStatus = 'Connected via Ethernet';
-            break;
-          case ConnectivityResult.vpn:
-            networkType = 'VPN';
-            connectionStatus = 'Connected via VPN';
-            break;
-          case ConnectivityResult.bluetooth:
-            networkType = 'Bluetooth';
-            connectionStatus = 'Connected via Bluetooth';
-            break;
-          case ConnectivityResult.other:
-            networkType = 'Other';
-            connectionStatus = 'Connected via Other';
-            break;
-          case ConnectivityResult.none:
-            networkType = 'No Connection';
-            connectionStatus = 'No Internet Connection';
-            break;
+        if (connectivityResults.isEmpty ||
+            connectivityResults.contains(ConnectivityResult.none)) {
+          networkType = 'No Connection';
+          connectionStatus = 'No Internet Connection';
+        } else if (connectivityResults.contains(ConnectivityResult.wifi)) {
+          networkType = 'WiFi';
+          connectionStatus = 'Connected to WiFi';
+        } else if (connectivityResults.contains(ConnectivityResult.mobile)) {
+          networkType = 'Mobile Data';
+          connectionStatus = 'Connected to Mobile Network';
+        } else if (connectivityResults.contains(ConnectivityResult.ethernet)) {
+          networkType = 'Ethernet';
+          connectionStatus = 'Connected via Ethernet';
+        } else if (connectivityResults.contains(ConnectivityResult.vpn)) {
+          networkType = 'VPN';
+          connectionStatus = 'Connected via VPN';
+        } else if (connectivityResults.contains(ConnectivityResult.bluetooth)) {
+          networkType = 'Bluetooth';
+          connectionStatus = 'Connected via Bluetooth';
+        } else {
+          networkType = 'Other';
+          connectionStatus = 'Connected via Other';
         }
       });
 
-      String? ip;
-      try {
-        ip = await _networkInfo.getWifiIP();
-        if (ip == null || ip.isEmpty) {
-          ip = await _networkInfo.getWifiIP();
+      String deviceIP = 'Not Available';
+
+      // Try multiple methods to get device IP based on connectivity type
+      if (connectivityResults.contains(ConnectivityResult.wifi)) {
+        // For WiFi, try to get local IP first
+        try {
+          deviceIP = await _networkInfo.getWifiIP() ?? 'Not Available';
+          print('WiFi IP obtained: $deviceIP');
+        } catch (e) {
+          print('WiFi IP failed: $e');
+          deviceIP = 'Not Available';
         }
-      } catch (e) {
-        ip = 'Not Available';
+      } else if (connectivityResults.contains(ConnectivityResult.mobile)) {
+        // For mobile, skip the WiFi IP method and go straight to network interfaces
+        print('Mobile connection detected, will use network interfaces');
+        deviceIP = 'Not Available';
       }
 
+      // If still no IP, try to get local IP from network interfaces
+      if (deviceIP == 'Not Available' || deviceIP.isEmpty) {
+        try {
+          final interfaces = await NetworkInterface.list();
+          String? localIP;
+
+          for (final interface in interfaces) {
+            for (final addr in interface.addresses) {
+              if (addr.type == InternetAddressType.IPv4 &&
+                  !addr.address.startsWith('127.') &&
+                  !addr.address.startsWith('169.254.')) {
+                // Prefer WiFi/Ethernet interfaces over others
+                if (interface.name.toLowerCase().contains('wi-fi') ||
+                    interface.name.toLowerCase().contains('wifi') ||
+                    interface.name.toLowerCase().contains('ethernet') ||
+                    interface.name.toLowerCase().contains('en0') ||
+                    interface.name.toLowerCase().contains('wlan')) {
+                  deviceIP = addr.address;
+                  print(
+                    'Found preferred interface IP: $deviceIP on ${interface.name}',
+                  );
+                  break;
+                } else if (localIP == null) {
+                  // Keep first valid IP as fallback
+                  localIP = addr.address;
+                }
+              }
+            }
+            if (deviceIP != 'Not Available') break;
+          }
+
+          // Use fallback IP if no preferred interface found
+          if (deviceIP == 'Not Available' && localIP != null) {
+            deviceIP = localIP;
+            print('Using fallback IP: $deviceIP');
+          }
+        } catch (e) {
+          print('Network interface IP failed: $e');
+        }
+      }
+
+      // Only try to get public IP if we have no IP at all
+      if (deviceIP == 'Not Available' || deviceIP.isEmpty) {
+        try {
+          final ipResp = await http
+              .get(
+                Uri.parse('https://api.ipify.org?format=json'),
+                headers: {'User-Agent': 'Mozilla/5.0'},
+              )
+              .timeout(Duration(seconds: 10));
+
+          if (ipResp.statusCode == 200) {
+            final ipData = json.decode(ipResp.body);
+            deviceIP = ipData['ip'] ?? 'Not Available';
+            print('Public IP from external service: $deviceIP');
+          }
+        } catch (e) {
+          print('Public IP failed: $e');
+        }
+      }
+
+      print('Network Info Screen: Final IP: $deviceIP');
+
       setState(() {
-        wifiIP = ip ?? 'Not Available';
+        wifiIP = deviceIP;
       });
 
-      if (connectivityResult == ConnectivityResult.wifi) {
+      if (connectivityResults.contains(ConnectivityResult.wifi)) {
         try {
           final name = await _networkInfo.getWifiName();
           final bssid = await _networkInfo.getWifiBSSID();
-          
+
           setState(() {
             wifiName = name ?? 'Not Available';
             wifiBSSID = bssid ?? 'Not Available';
@@ -145,15 +210,27 @@ class _NetworkInfoScreenState extends State<NetworkInfoScreen> {
 
   Future<void> _fetchISPInfo() async {
     try {
-      final ipResp = await http.get(Uri.parse('https://api.ipify.org?format=json'));
+      final ipResp = await http
+          .get(
+            Uri.parse('https://api.ipify.org?format=json'),
+            headers: {'User-Agent': 'Mozilla/5.0'},
+          )
+          .timeout(Duration(seconds: 10));
+
       if (ipResp.statusCode == 200) {
         final ip = json.decode(ipResp.body)['ip'];
-        final ispResp = await http.get(Uri.parse('https://ipinfo.io/$ip/json'));
+        final ispResp = await http
+            .get(
+              Uri.parse('https://ipinfo.io/$ip/json'),
+              headers: {'User-Agent': 'Mozilla/5.0'},
+            )
+            .timeout(Duration(seconds: 10));
+
         if (ispResp.statusCode == 200) {
           final ispData = json.decode(ispResp.body);
           String provider = ispData['org'] ?? ispData['isp'] ?? 'Unknown';
           provider = provider.replaceFirst(RegExp(r'^AS\d+\s+'), '');
-          
+
           setState(() {
             ispProvider = provider;
           });
@@ -168,6 +245,7 @@ class _NetworkInfoScreenState extends State<NetworkInfoScreen> {
         });
       }
     } catch (e) {
+      print('ISP info failed: $e');
       setState(() {
         ispProvider = 'Unknown';
       });
@@ -178,7 +256,7 @@ class _NetworkInfoScreenState extends State<NetworkInfoScreen> {
     IconData icon;
     Color color;
     String label;
-    
+
     switch (networkType) {
       case 'WiFi':
         icon = Icons.wifi;
@@ -216,10 +294,7 @@ class _NetworkInfoScreenState extends State<NetworkInfoScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            color.withOpacity(0.2),
-            color.withOpacity(0.1),
-          ],
+          colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -271,7 +346,13 @@ class _NetworkInfoScreenState extends State<NetworkInfoScreen> {
     );
   }
 
-  Widget _buildInfoCard(String title, String value, IconData icon, Color gradientStart, Color gradientEnd) {
+  Widget _buildInfoCard(
+    String title,
+    String value,
+    IconData icon,
+    Color gradientStart,
+    Color gradientEnd,
+  ) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
       decoration: BoxDecoration(
@@ -290,7 +371,10 @@ class _NetworkInfoScreenState extends State<NetworkInfoScreen> {
         ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 12,
+        ),
         leading: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -468,12 +552,18 @@ class _NetworkInfoScreenState extends State<NetworkInfoScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 16,
+                            ),
                           ),
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const LocationInfoScreen()),
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const LocationInfoScreen(),
+                              ),
                             );
                           },
                           icon: const Icon(Icons.location_on),
