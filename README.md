@@ -1,5 +1,5 @@
 
-# !(assets/images/speed_test_logo.jpg) [NetMeter]
+# NetMeter
 
 **NetMeter** is a Flutter-based mobile application that measures internet speed and displays real-time network statistics such as download speed, upload speed, and ping. The app provides a modern user interface with visual gauges to represent network performance in an intuitive way.
 
