@@ -428,11 +428,8 @@
 // }
 
 
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:speed_test/view/widgets/about_button.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:share_plus/share_plus.dart';
+import 'widgets/about_button.dart';
+import '../utils/import_export.dart';
 
 class AboutUs extends StatelessWidget {
 

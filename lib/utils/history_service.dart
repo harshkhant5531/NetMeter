@@ -1,6 +1,4 @@
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../model/test_history_model.dart';
+import '../utils/import_export.dart';
 
 class HistoryService {
   static const String _historyKey = 'speed_test_history';

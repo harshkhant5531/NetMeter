@@ -1,9 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'dart:async';
-import 'view/speed_test_view.dart';
 import 'dart:math' as math;
+import 'view/speed_test_view.dart';
+import 'utils/import_export.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

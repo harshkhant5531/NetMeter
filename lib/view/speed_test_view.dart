@@ -1,9 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../controller/speed_test_controller.dart';
-import '../model/speed_test_model.dart';
-import '../utils/ui_helpers.dart';
 import 'about_us.dart';
 import 'feedback_screen.dart';
 import 'ping.dart';
@@ -11,6 +5,7 @@ import 'network_information.dart';
 import 'network_evaluation.dart';
 import 'daily_usage.dart';
 import 'ip_to_location.dart';
+import '../utils/import_export.dart';
 
 class SpeedTestView extends StatefulWidget {
   const SpeedTestView({super.key});

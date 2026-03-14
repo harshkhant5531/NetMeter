@@ -1,22 +1,10 @@
-
-import 'dart:async';
-import 'dart:io';
-import 'dart:math';
-import 'dart:typed_data';
-import 'dart:convert';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:speed_test/view/network_evaluation.dart';
-import 'package:speed_test/view/network_information.dart';
-import 'package:speed_test/view/ping.dart';
-import 'package:speed_test/view/daily_usage.dart';
-import 'package:gauge_indicator/gauge_indicator.dart';
-import 'package:dart_ping/dart_ping.dart';
-import 'package:network_info_plus/network_info_plus.dart';
 import 'package:http/http.dart' as http;
-import 'package:permission_handler/permission_handler.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'dart:math' as math;
+import 'view/network_evaluation.dart';
+import 'view/network_information.dart';
+import 'view/ping.dart';
+import 'view/daily_usage.dart';
+import 'utils/import_export.dart';
 
 class SpeedTestScreen extends StatefulWidget {
   final bool isDarkMode;

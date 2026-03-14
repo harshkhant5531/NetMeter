@@ -1,14 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:network_info_plus/network_info_plus.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'dart:async';
-import 'dart:io';
-import 'package:google_fonts/google_fonts.dart';
-
 import 'ip_to_location.dart';
+import '../utils/import_export.dart';
 
 class NetworkInfoScreen extends StatefulWidget {
   const NetworkInfoScreen({super.key});

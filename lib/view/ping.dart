@@ -1,7 +1,4 @@
-import 'package:dart_ping/dart_ping.dart';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
+import '../utils/import_export.dart';
 
 class PingCheckerPage extends StatefulWidget {
   const PingCheckerPage({super.key});

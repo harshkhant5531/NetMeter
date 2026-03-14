@@ -1,6 +1,10 @@
-import 'package:flutter/material.dart';
+import '../utils/import_export.dart';
 
 class AppConstants {
+  // App Info
+  static const String appName = 'NetMeter';
+  static const String appVersion = '1.0.0';
+  
   // Colors
   static const Color primaryColor = Color(0xFF3EADCF);
   static const Color secondaryColor = Color(0xFFABE9CD);

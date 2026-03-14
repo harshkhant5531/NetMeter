@@ -1,8 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../utils/import_export.dart';
 
 class LocationInfoScreen extends StatefulWidget {
   const LocationInfoScreen({super.key});
